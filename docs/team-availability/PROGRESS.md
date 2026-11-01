@@ -3,22 +3,23 @@
 > Plik roboczy aktualizowany po każdym etapie. Źródłem wymagań jest
 > `INSTRUCTIONS.md` (wersja 2). Ten plik zapisuje stan, decyzje i ustalenia.
 
-**Ostatnia aktualizacja:** 2026-11-01
+**Ostatnia aktualizacja:** 2026-11-01 (koniec sesji)
 
 ## Bieżący etap
 
-**Etap 1 (rekonesans) zakończony, raport przedstawiony.** Czeka na decyzje
-użytkownika (sekcja „Otwarte decyzje”) i akceptację przejścia do Etapu 2.
+**Etap 2 (środowisko lokalne) w toku.** Etap 1 zaakceptowany 2026-11-01.
+Stack deweloperski i bazowy pytest działają; zostało uruchomienie
+`pnpm dev` i pierwsze logowanie (sekcja „Następne kroki”).
 
-| Etap | Status |
-| --- | --- |
-| 1. Rekonesans | ukończony, czeka na akceptację |
-| 2. Środowisko lokalne | nie rozpoczęty |
-| 3. Backend | nie rozpoczęty |
-| 4. Logika frontendu | nie rozpoczęty |
-| 5. Widoki | nie rozpoczęty |
-| 6. Weryfikacja | nie rozpoczęty |
-| 7. Wdrożenie | nie rozpoczęty |
+| Etap                  | Status                   |
+| --------------------- | ------------------------ |
+| 1. Rekonesans         | ukończony, zaakceptowany |
+| 2. Środowisko lokalne | w toku                   |
+| 3. Backend            | nie rozpoczęty           |
+| 4. Logika frontendu   | nie rozpoczęty           |
+| 5. Widoki             | nie rozpoczęty           |
+| 6. Weryfikacja        | nie rozpoczęty           |
+| 7. Wdrożenie          | nie rozpoczęty           |
 
 ## Co zrobione
 
@@ -32,9 +33,36 @@ użytkownika (sekcja „Otwarte decyzje”) i akceptację przejścia do Etapu 2.
   `makeplane/plane`. Żaden istniejący workflow nie startuje na push do
   `team-availability`.
 
+### Etap 2: środowisko lokalne (w toku)
+
+- `./setup.sh`: utworzone `.env`, `apps/{web,api,space,admin,live}/.env`
+  (ignorowane przez git), `SECRET_KEY` w `apps/api/.env`, `pnpm install`
+  bez zmian w lockfile. Husky zainstalował hook pre-commit (lint-staged).
+- Stack deweloperski: `docker compose -f docker-compose-local.yml up -d
+--build` (projekt `plane-custom`). Backend z zamontowanym `apps/api`
+  (`runserver`, autoreload), migrator zakończony kodem 0, API odpowiada na
+  `http://localhost:8000/api/instances/` (200).
+- Konfiguracja web ↔ API z `.env.example` jest spójna, bez zmian:
+  `VITE_API_BASE_URL=http://localhost:8000`, a `CORS_ALLOWED_ORIGINS`
+  (i `CSRF_TRUSTED_ORIGINS`) zawiera `http://localhost:3000`.
+- **Bazowy pytest (v1.4.3, przed zmianami):** 583 passed, **5 failed**,
+  119 s. Wszystkie 5 to `429 RATE_LIMIT_EXCEEDED` w
+  `plane/tests/contract/api/test_projects.py` i `test_projects_lite.py`
+  (limit `API_KEY_RATE_LIMIT=60/minute` przy pełnym przebiegu). Problem
+  środowiskowy upstreamu, nie regresja. Punkt odniesienia dla Etapu 3.
+- **Stos testowy uruchamiamy z osobną nazwą projektu:**
+  `docker compose -p plane-ta-test -f docker-compose-test.yml ...`
+  (także `down -v`). Bez `-p` oba pliki compose trafiają do projektu
+  `plane-custom` i `down -v` mógłby dotknąć stosu deweloperskiego.
+- Decyzja robocza: do developmentu (Etapy 3–5) używamy
+  `docker-compose-local.yml` + `pnpm dev`. Stack produkcyjny (oficjalny
+  compose 1.4.3 + override na lokalnie zbudowane obrazy, sekcja 11) budujemy
+  w Etapie 6 razem z obrazami `plane-frontend`/`plane-backend`.
+
 ## Ustalenia z rekonesansu
 
 **Frontend**
+
 - Wzorzec nagłówka: `layout.tsx` = `AppHeader` (`header`, `mobileHeader`) +
   `ContentWrapper` + `Outlet`; nagłówek = `Header` + `Breadcrumbs`
   (`@plane/ui`) + `BreadcrumbLink`; w projekcie `CommonProjectBreadcrumbs`.
@@ -65,6 +93,7 @@ użytkownika (sekcja „Otwarte decyzje”) i akceptację przejścia do Etapu 2.
   a `tsc` (`include: **/*`) bez `allowImportingTsExtensions` zgłasza TS5097.
 
 **Backend**
+
 - Ostatnia migracja `db`: `0122_alter_draftissue_assignees_alter_issue_assignees_and_more`.
 - Używamy `BaseModel` + własne FK `workspace` (`WorkspaceBaseModel` dodaje
   nullowalne FK `project`).
@@ -84,6 +113,7 @@ użytkownika (sekcja „Otwarte decyzje”) i akceptację przejścia do Etapu 2.
   jak podaje `AGENTS.md`). Brak `apps/api/.env`, więc `./setup.sh` w Etapie 2.
 
 **Deployment**
+
 - Compose (`deployments/cli/community/docker-compose.yml`): obrazy
   `makeplane/<nazwa>:${APP_RELEASE:-stable}`; usługi `web`, `api`, `worker`,
   `beat-worker`, `migrator` potwierdzone.
@@ -94,10 +124,16 @@ użytkownika (sekcja „Otwarte decyzje”) i akceptację przejścia do Etapu 2.
 ## Decyzje
 
 Podjęte:
+
 - Formularz używa `ModalCore`; potwierdzenie usunięcia `AlertModalCore`.
 - Modele dziedziczą po `BaseModel` z jawnym FK `workspace`.
 
 ## Otwarte decyzje (czekają na użytkownika)
+
+> **Do potwierdzenia na początku następnej sesji:** w bocznym wątku `/btw`
+> padły odpowiedzi **1A, 2A, 3A, 4 tak**. Nie zostały potwierdzone w głównej
+> rozmowie, więc do czasu potwierdzenia traktujemy je jako otwarte. Są
+> potrzebne przed Etapem 3 (pkt 4) i Etapami 4–5 (pkt 1–3).
 
 1. **Ustawienia workspace'u.** (A, rekomendowane) dopuścić zmiany w
    `packages/types/src/settings.ts` (typ `TWorkspaceSettingsTabs`) i
@@ -117,9 +153,14 @@ Podjęte:
 
 ## Następne kroki
 
-Po akceptacji Etapu 1 i decyzjach powyżej, Etap 2:
-1. `./setup.sh` i `apps/api/.env`.
-2. `pnpm install`.
-3. Lokalny stack 1.4.3 z override'em na lokalne obrazy.
-4. `pnpm dev` dla web z API lokalnego stosu (`VITE_*`, CORS).
-5. Bazowy przebieg pytest w `docker-compose-test.yml` (stan przed zmianami).
+Dokończenie Etapu 2:
+
+1. Wznowienie stacka, jeśli jest zatrzymany:
+   `docker compose -f docker-compose-local.yml up -d`.
+2. `pnpm dev` (lub `pnpm turbo run dev --filter=web --filter=admin`):
+   web na :3000, admin na :3001.
+3. Konfiguracja instancji w `/god-mode` (konto admina), utworzenie
+   workspace'u testowego i kont: Admin, Member, Guest (do kryteriów 15–17).
+4. Smoke test: logowanie, projekt, work item, Cycles (stan przed zmianami).
+5. Raport Etapu 2, potwierdzenie decyzji 1–4, akceptacja przejścia do
+   Etapu 3 (backend).
