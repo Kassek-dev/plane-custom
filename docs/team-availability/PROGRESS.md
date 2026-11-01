@@ -241,6 +241,17 @@ URL."]}`; to samo na oficjalnych obrazach.
   `window.location.origin`. Sprawdzone: build same-origin, jawne
   `VITE_API_BASE_URL`, brak `window`, pełne URL-e; `check:types` 28/28.
 - Override: tag `1.4.3-kass.2`.
+- `plane-kass.sh` (prośba użytkownika): nowe akcje `version`, `backup`,
+  `update [tag] [-y]`. `update` czyta wersję z override'u, szuka
+  najnowszego tagu tej samej serii przez GitHub API (`git/matching-refs`,
+  bez problemu stronicowania tagów upstreamu), sprawdza obrazy w GHCR,
+  pyta o zgodę, robi kopię (pliki + `pg_dump`), pobiera i waliduje override
+  i skrypt nowej wersji, podmienia je (`mv`) i uruchamia `up`. Adresy
+  GitHuba konfigurowalne (`PLANE_KASS_REPO`, `PLANE_KASS_GITHUB_API`,
+  `PLANE_KASS_RAW_BASE`). Test na symulacji serwera z fałszywym GitHubem:
+  odmowa, obca seria, brak wydania, aktualizacja kass.1 → kass.2 z kopią,
+  „Already on”, powrót do kass.1; kontrola obrazów i `version` także na
+  prawdziwym GHCR/GitHubie. Instrukcja: `DEPLOYMENT.md`, sekcja C2.
 
 ## Ustalenia z rekonesansu
 

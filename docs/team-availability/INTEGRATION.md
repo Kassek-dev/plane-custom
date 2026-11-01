@@ -109,7 +109,8 @@ przyszłe moduły forka; nazwy specyficzne dla funkcji zostają w kodzie modułu
   OCI. Nowy moduł: dopisać krok z jego testami w jobie `verify`.
 - `deploy/kass/docker-compose.kass.yaml`: override tylko `image`.
 - `deploy/kass/plane-kass.sh`: `up`, `pull`, `down`, `restart`, `logs`,
-  `status`, `rollback`.
+  `status`, `rollback`, `version`, `backup`, `update [tag]` (od
+  `1.4.3-kass.2`).
 - `deploy/kass/DEPLOYMENT.md`: instrukcja wdrożenia i rollbacku.
 
 ## Poprawki upstream wariantu (`KASS`, poza modułem)
