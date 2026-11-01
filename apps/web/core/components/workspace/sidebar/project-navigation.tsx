@@ -153,7 +153,8 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
     };
 
     // sort navigation items by sortOrder
-    const sortedNavigationItems = navigationItems(workspaceSlug, projectId).toSorted(
+    // oxlint-disable-next-line unicorn/no-array-sort -- TEAM-AVAILABILITY: keep upstream .sort(); the hook's --fix rewrote it to toSorted (not in lib ES2022)
+    const sortedNavigationItems = navigationItems(workspaceSlug, projectId).sort(
       (a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)
     );
 
