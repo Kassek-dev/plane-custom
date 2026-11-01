@@ -6,15 +6,48 @@ sprawdź każdy wiersz tej tabeli.
 
 ## Pliki upstream
 
-| Plik                                  | Zmiana                                                                         | Etap |
-| ------------------------------------- | ------------------------------------------------------------------------------ | ---- |
-| `apps/api/plane/settings/common.py`   | `"plane.availability"` w `INSTALLED_APPS`                                      | 3    |
-| `apps/api/plane/app/urls/__init__.py` | import `plane.availability.urls` i `*availability_urls` na końcu `urlpatterns` | 3    |
+| Plik                                                                | Zmiana                                                                                                                                  | Etap |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| `apps/api/plane/settings/common.py`                                 | `"plane.availability"` w `INSTALLED_APPS`                                                                                               | 3    |
+| `apps/api/plane/app/urls/__init__.py`                               | import `plane.availability.urls` i `*availability_urls` na końcu `urlpatterns`                                                          | 3    |
+| `apps/web/app/routes/extended.ts`                                   | 3 trasy pod tymi samymi layoutami co w `core.ts`                                                                                        | 5    |
+| `apps/web/core/components/navigation/use-navigation-items.ts`       | pozycja w zakładkach projektu (`getTeamAvailabilityNavigationItem`)                                                                     | 5    |
+| `apps/web/core/components/workspace/sidebar/project-navigation.tsx` | ta sama pozycja w sidebarze projektu                                                                                                    | 5    |
+| `packages/constants/src/workspace.ts`                               | pozycja `team-availability` w `WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS` i w `..._STATIC_PINNED_NAVIGATION_ITEMS_LINKS` (pod Projects) | 5    |
+| `apps/web/core/components/workspace/sidebar/sidebar-item.tsx`       | klucz `team_availability` w `staticItems` (zawsze widoczna, bez preferencji)                                                            | 5    |
+| `apps/web/core/components/workspace/sidebar/helper.tsx`             | ikona dla klucza `team_availability`                                                                                                    | 5    |
+| `packages/constants/src/settings/workspace.ts`                      | `WORKSPACE_SETTINGS.availability` (tylko Admin) w kategorii Features                                                                    | 5    |
+| `packages/types/src/settings.ts`                                    | `"availability"` w `TWorkspaceSettingsTabs` (decyzja 1A, poza sekcją 9)                                                                 | 5    |
+| `apps/web/core/components/settings/workspace/sidebar/item-icon.tsx` | ikona `availability` (decyzja 1A, poza sekcją 9)                                                                                        | 5    |
 
 ## Nowy kod (poza upstream)
 
 - `apps/api/plane/availability/`: aplikacja Django (modele, migracja
   `0001_initial`, serializery, widoki, URL-e, testy).
+- `apps/web/core/team-availability/`: moduł frontendu (logika `lib/`,
+  serwis HTTP, hooki SWR, komponenty, testy `node --test`).
+- Cienkie pliki tras (nowe, nie upstream):
+  `apps/web/app/(all)/[workspaceSlug]/(projects)/team-availability/{layout,page}.tsx`,
+  `.../projects/(detail)/[projectId]/team-availability/{layout,page}.tsx`,
+  `.../(settings)/settings/(workspace)/availability/page.tsx`.
+
+W `project-navigation.tsx` są też dwa komentarze
+`// oxlint-disable-next-line no-shadow` przy istniejącym kodzie upstreamu
+(hook lint-staged z `--deny-warnings` blokował commit; tak samo wycisza to
+upstream w `use-navigation-items.ts`). Bez zmian w logice.
+
+`sidebar-menu-items.tsx` (dozwolony w sekcji 9) nie wymagał zmian: pozycja
+renderuje się przez istniejącą listę przypiętych pozycji statycznych.
+
+## Frontend: uwagi utrzymaniowe
+
+- `@plane/constants` i `@plane/types` są konsumowane z `dist/`. Po zmianie
+  ich źródeł: `pnpm turbo run build --filter=@plane/types --filter=@plane/constants`
+  i restart `pnpm dev`.
+- Testy logiki (z `apps/web`): `node core/team-availability/test/run.mjs`.
+- Moduł czyta store MobX tylko przez istniejące hooki (`useUser`,
+  `useUserProfile`, `useUserPermissions`, `useMember`, `useWorkspace`,
+  `useProject`); niczego w nim nie zapisuje. Dane modułu: SWR.
 
 ## Backend: uwagi utrzymaniowe
 

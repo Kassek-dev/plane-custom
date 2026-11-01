@@ -20,6 +20,8 @@ import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
+// TEAM-AVAILABILITY
+import { getTeamAvailabilityNavigationItem } from "@/team-availability/constants";
 
 export type TNavigationItem = {
   name: string;
@@ -69,6 +71,7 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
   };
 
   const baseNavigation = useCallback(
+    // oxlint-disable-next-line no-shadow -- TEAM-AVAILABILITY: pre-existing upstream pattern, silenced for the lint-staged hook
     (workspaceSlug: string, projectId: string): TNavigationItem[] => [
       {
         i18n_key: "sidebar.work_items",
@@ -130,12 +133,15 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
         shouldRender: project?.inbox_view ?? false,
         sortOrder: 6,
       },
+      // TEAM-AVAILABILITY
+      getTeamAvailabilityNavigationItem(workspaceSlug, projectId),
     ],
     [project]
   );
 
   // memoized navigation items and adding additional navigation items
   const navigationItemsMemo = useMemo(() => {
+    // oxlint-disable-next-line no-shadow -- TEAM-AVAILABILITY: pre-existing upstream pattern, silenced for the lint-staged hook
     const navigationItems = (workspaceSlug: string, projectId: string): TNavigationItem[] => {
       const navItems = baseNavigation(workspaceSlug, projectId);
 
@@ -147,7 +153,7 @@ export const ProjectNavigation = observer(function ProjectNavigation(props: TPro
     };
 
     // sort navigation items by sortOrder
-    const sortedNavigationItems = navigationItems(workspaceSlug, projectId).sort(
+    const sortedNavigationItems = navigationItems(workspaceSlug, projectId).toSorted(
       (a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)
     );
 

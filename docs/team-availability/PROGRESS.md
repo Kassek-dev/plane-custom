@@ -7,7 +7,7 @@
 
 ## Bieżący etap
 
-**Etap 5 (widoki) w toku.** Etap 4 zaakceptowany 2026-11-01.
+**Etap 6 (weryfikacja) w toku.** Etap 5 zaakceptowany 2026-11-01.
 
 | Etap                  | Status                   |
 | --------------------- | ------------------------ |
@@ -15,8 +15,8 @@
 | 2. Środowisko lokalne | ukończony, zaakceptowany |
 | 3. Backend            | ukończony, zaakceptowany |
 | 4. Logika frontendu   | ukończony, zaakceptowany |
-| 5. Widoki             | w toku                   |
-| 6. Weryfikacja        | nie rozpoczęty           |
+| 5. Widoki             | ukończony, zaakceptowany |
+| 6. Weryfikacja        | w toku                   |
 | 7. Wdrożenie          | nie rozpoczęty           |
 
 ## Co zrobione
@@ -125,6 +125,42 @@ dependencies changed`), a przeglądarka z nieaktualnym `?v=` dostaje
   `// oxlint-disable-next-line unicorn/no-array-sort` jak w upstreamie
   (`toSorted` niedostępne: `lib` ES2022).
 
+### Etap 5: widoki (zaakceptowany 2026-11-01)
+
+- Moduł `apps/web/core/team-availability/`:
+  - `services/availability.service.ts` (dziedziczy po `APIService`,
+    pobiera wszystkie strony wpisów, błędy z zachowanym statusem HTTP);
+  - `hooks/`: stan widoku w URL (`view`, `range`, `date`, `people`,
+    `statuses`, `locations`, `person`), gęstość w `localStorage` (try/catch),
+    SWR dla wpisów i słowników, odczyt kontekstu z store'ów Plane;
+  - `components/`: nagłówek z breadcrumbami i „Add availability”, toolbar
+    (widok, zakres, Previous/Today/Next, filtry, gęstość), Timeline,
+    Calendar, Personal, legenda, modal formularza (`ModalCore`) i
+    potwierdzenie usunięcia (`AlertModalCore`), strona słowników;
+  - `lib/format.ts`: etykiety dat bez `Date`/`Intl` (3 nowe testy).
+- Trasy w `extended.ts` + cienkie pliki tras; nawigacja: zakładki i sidebar
+  projektu, sidebar workspace'u (stała pozycja pod Projects), ustawienia
+  (Features → Availability, tylko Admin). Szczegóły w `INTEGRATION.md`.
+- Kontrole: `tsc` 0 błędów; `oxlint` dla nowych plików 0 ostrzeżeń, pliki
+  upstream bez nowych ostrzeżeń (5 przed i po); `oxfmt --check` czysto;
+  54 testy `node --test` w 4 strefach; Vite kompiluje moduł (dev server).
+- Ustalenia UI:
+  - Member klika tylko komórki własnego wiersza (inne nie są przyciskami);
+    cudzy wpis otwiera się w trybie tylko do odczytu;
+  - w kalendarzu „+N more” przełącza na Timeline z zakresem tygodnia;
+  - lista osób: aktywni członkowie workspace'u bez botów (wszystkie role,
+    jak w API); w projekcie: członkowie projektu;
+  - Calendar dla zakresu „2 weeks” pokazuje 2 wiersze tygodni.
+- Poprawka po teście UI (2026-11-01): usuwanie nie działało (DELETE nie
+  docierał do API). Modal potwierdzenia był drugim, równoległym `Dialog`
+  headless-ui; kliknięcie w nim zamykało formularz i odmontowywało oba.
+  Teraz formularz się zamyka, a `DeleteEntryModal` otwiera się samodzielnie
+  (`components/delete-modal.tsx`, stan w `root.tsx`).
+- Pytanie o automatyczne odświeżanie u innych użytkowników (2026-11-01):
+  wykonalne (np. odpytywanie SWR co ~30 s + odświeżanie po powrocie do
+  karty), ale użytkownik zdecydował: **nie wdrażamy**; zostaje zasada
+  „bez realtime” z sekcji 7.10.
+
 ## Ustalenia z rekonesansu
 
 **Frontend**
@@ -222,6 +258,6 @@ Brak.
 
 ## Następne kroki
 
-1. Etap 5: serwis HTTP (`APIService`) i hooki SWR, trasy w `extended.ts`,
-   nawigacja (projekt, sidebar workspace'u, ustawienia; decyzje 1A, 2A),
-   widoki Timeline, Calendar, Personal, formularz, strona słowników.
+1. Etap 6: `pnpm check:types`/`check:lint` (cały monorepo), build obrazów
+   `plane-frontend`/`plane-backend` dla `linux/amd64`, kontrola bundla pod
+   kątem sekretów, smoke test, przegląd kryteriów 1–30, `INTEGRATION.md`.

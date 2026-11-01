@@ -10,6 +10,8 @@ import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { CycleIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon, WorkItemsIcon } from "@plane/propel/icons";
 import type { EUserProjectRoles, IPartialProject } from "@plane/types";
 import type { TNavigationItem } from "@/components/navigation/tab-navigation-root";
+// TEAM-AVAILABILITY
+import { getTeamAvailabilityNavigationItem } from "@/team-availability/constants";
 
 type UseNavigationItemsProps = {
   workspaceSlug: string;
@@ -93,6 +95,8 @@ export const useNavigationItems = ({
         shouldRender: !!project?.inbox_view,
         sortOrder: 6,
       },
+      // TEAM-AVAILABILITY
+      getTeamAvailabilityNavigationItem(workspaceSlug, projectId),
     ],
     [project]
   );
