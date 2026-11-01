@@ -23,6 +23,9 @@ from .workspace import urlpatterns as workspace_urls
 from .timezone import urlpatterns as timezone_urls
 from .exporter import urlpatterns as exporter_urls
 
+# TEAM-AVAILABILITY: workspace availability planning module
+from plane.availability.urls import urlpatterns as availability_urls
+
 urlpatterns = [
     *analytic_urls,
     *asset_urls,
@@ -44,4 +47,5 @@ urlpatterns = [
     *webhook_urls,
     *timezone_urls,
     *exporter_urls,
+    *availability_urls,  # TEAM-AVAILABILITY
 ]

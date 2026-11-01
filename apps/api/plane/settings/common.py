@@ -111,6 +111,8 @@ INSTALLED_APPS = [
     "plane.license",
     "plane.api",
     "plane.authentication",
+    # TEAM-AVAILABILITY: workspace availability planning module
+    "plane.availability",
     # Third-party things
     "rest_framework",
     "corsheaders",
