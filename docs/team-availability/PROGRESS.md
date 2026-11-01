@@ -7,16 +7,15 @@
 
 ## Bieżący etap
 
-**Etap 4 (logika frontendu) w toku.** Etap 3 zaakceptowany 2026-11-01
-(z `RESTRICT` zamiast `PROTECT`).
+**Etap 5 (widoki) w toku.** Etap 4 zaakceptowany 2026-11-01.
 
 | Etap                  | Status                   |
 | --------------------- | ------------------------ |
 | 1. Rekonesans         | ukończony, zaakceptowany |
 | 2. Środowisko lokalne | ukończony, zaakceptowany |
 | 3. Backend            | ukończony, zaakceptowany |
-| 4. Logika frontendu   | w toku                   |
-| 5. Widoki             | nie rozpoczęty           |
+| 4. Logika frontendu   | ukończony, zaakceptowany |
+| 5. Widoki             | w toku                   |
 | 6. Weryfikacja        | nie rozpoczęty           |
 | 7. Wdrożenie          | nie rozpoczęty           |
 
@@ -97,6 +96,34 @@ dependencies changed`), a przeglądarka z nieaktualnym `?v=` dostaje
     liter, w bazie (constraint) dokładna;
   - `notes` maks. 2000 znaków, nazwy słowników maks. 100;
   - `project_id` nieistniejącego projektu daje 403 (jak brak członkostwa).
+
+### Etap 4: logika frontendu (zaakceptowany 2026-11-01)
+
+- Moduł `apps/web/core/team-availability/` (bez zmian w plikach upstream):
+  - `lib/dates.ts`: dni jako liczby całkowite (indeks od 1970-01-01),
+    konwersje algorytmami Hinnanta bez `Date`; `parseDay`, `tryParseDay`,
+    `formatDay`, `addDays`, `diffDays`, `rangeLength`, `weekday`,
+    `weekStart`, `daysInMonth`, `monthStart/End`, `addMonths`, `isoWeek`,
+    `overlaps`, `contains`, `clip`, `fromLocalDate`/`toLocalDate` (most do
+    date pickera), `today`;
+  - `lib/range.ts`: zakresy tydzień / 2 tygodnie (domyślny) / miesiąc,
+    Previous/Next, siatka tygodni kalendarza, paski tygodni ISO i miesięcy;
+  - `lib/layout.ts`: pasy (zachłanny podział przedziałów), konflikty,
+    wiersze Timeline (przycinanie, `cutLeft`/`cutRight`, pod-wiersze),
+    tygodnie Calendar (odcinki per tydzień, pasy per tydzień, „+N more”
+    liczone per dzień);
+  - `lib/validation.ts`: walidacja formularza zgodna z API;
+  - `lib/entries.ts`: wpisy API → elementy z indeksami dni;
+  - `types.ts`: typy odpowiedzi API i paleta kolorów.
+- Testy: `node core/team-availability/test/run.mjs` (z `apps/web`) uruchamia
+  51 testów w strefach UTC, Europe/Warsaw, America/Los_Angeles,
+  Pacific/Auckland. Hook `test/resolve-ts.mjs` dokleja `.ts` do
+  bezrozszerzeniowych importów względnych; bez zależności.
+  `lib/acceptance.test.ts` odwzorowuje kryteria 1–7 i 25.
+- `tsc` (`pnpm run check:types` w `apps/web`): 0 błędów. `oxlint` i
+  `oxfmt --check` dla modułu: 0 ostrzeżeń. Sortowanie kopii tablic z
+  `// oxlint-disable-next-line unicorn/no-array-sort` jak w upstreamie
+  (`toSorted` niedostępne: `lib` ES2022).
 
 ## Ustalenia z rekonesansu
 
@@ -195,6 +222,6 @@ Brak.
 
 ## Następne kroki
 
-1. Etap 4: helper dat (`parseDay`, `formatDay`, `addDays`, `diffDays`,
-   `weekStart`, `daysInMonth`, `isoWeek`, `overlaps`, `clip`), lanes,
-   konflikty; testy `node --test` z hookiem resolve (kryteria 1–7, 25).
+1. Etap 5: serwis HTTP (`APIService`) i hooki SWR, trasy w `extended.ts`,
+   nawigacja (projekt, sidebar workspace'u, ustawienia; decyzje 1A, 2A),
+   widoki Timeline, Calendar, Personal, formularz, strona słowników.
