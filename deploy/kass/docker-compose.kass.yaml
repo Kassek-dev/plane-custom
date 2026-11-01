@@ -1,0 +1,21 @@
+# Plane 1.4.3, Kassek-dev variant (custom modules; currently Team Availability).
+#
+# Override for the official docker-compose.yaml installed by setup.sh.
+# It changes ONLY the `image` of the five services built from this fork;
+# environment, networks, volumes and dependencies come from the base file.
+#
+# Use through plane-kass.sh (always together with the base file):
+#   docker compose -f docker-compose.yaml -f docker-compose.kass.yaml --env-file plane.env ...
+#
+# New release: change the tag below (all five lines) to the new 1.4.3-kass.<n>.
+services:
+  web:
+    image: ghcr.io/kassek-dev/plane-frontend:1.4.3-kass.1
+  api:
+    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.1
+  worker:
+    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.1
+  beat-worker:
+    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.1
+  migrator:
+    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.1

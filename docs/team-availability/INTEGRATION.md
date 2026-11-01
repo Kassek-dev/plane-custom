@@ -98,3 +98,16 @@ Prefiks `/api/workspaces/<slug>/availability/`:
 - Hook lint-staged uruchamia `oxlint --fix`; przy plikach upstream może
   zmienić kod (np. `.sort()` → `.toSorted()`, niezgodne z lib ES2022).
   Po commicie: `pnpm check:types`.
+
+## Wdrożenie (Etap 7): pliki wspólne dla wariantu
+
+Nazewnictwo budowania i wdrażania jest ogólne (`kass`), bo obejmie też
+przyszłe moduły forka; nazwy specyficzne dla funkcji zostają w kodzie modułu.
+
+- `.github/workflows/kass-images.yml`: tag `1.4.3-kass.<n>` → testy modułów
+  → obrazy `ghcr.io/kassek-dev/plane-{frontend,backend}:<tag>` z etykietami
+  OCI. Nowy moduł: dopisać krok z jego testami w jobie `verify`.
+- `deploy/kass/docker-compose.kass.yaml`: override tylko `image`.
+- `deploy/kass/plane-kass.sh`: `up`, `pull`, `down`, `restart`, `logs`,
+  `status`, `rollback`.
+- `deploy/kass/DEPLOYMENT.md`: instrukcja wdrożenia i rollbacku.

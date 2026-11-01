@@ -7,9 +7,9 @@
 
 ## Bieżący etap
 
-**Etap 7 (wdrożenie) czeka na dane z serwera.** Etap 6 zaakceptowany
-2026-11-01. Użytkownik dostarczy pliki z serwera (m.in. `docker-compose.yaml`,
-bez `plane.env`) i opisze sytuację; do tego czasu nie zaczynamy Etapu 7.
+**Etap 7 (wdrożenie) zaakceptowany 2026-11-01.** Gałąź i tag
+`1.4.3-kass.1` wypchnięte; dalsze kroki (workflow, GHCR, wdrożenie
+produkcyjne) wykonuje użytkownik według `deploy/kass/DEPLOYMENT.md`.
 
 | Etap                  | Status                   |
 | --------------------- | ------------------------ |
@@ -19,7 +19,7 @@ bez `plane.env`) i opisze sytuację; do tego czasu nie zaczynamy Etapu 7.
 | 4. Logika frontendu   | ukończony, zaakceptowany |
 | 5. Widoki             | ukończony, zaakceptowany |
 | 6. Weryfikacja        | ukończony, zaakceptowany |
-| 7. Wdrożenie          | nie rozpoczęty           |
+| 7. Wdrożenie          | ukończony, zaakceptowany |
 
 ## Co zrobione
 
@@ -208,6 +208,26 @@ dependencies changed`), a przeglądarka z nieaktualnym `?v=` dostaje
 | 29    | ✅          | pytest bez regresji; smoke core 10/10 przed, po i po rollbacku                                                                      |
 | 30    | ✅          | grep `raw(`/`extra(`/`RawSQL`/`cursor` w module i w obrazie: brak                                                                   |
 
+### Etap 7: wdrożenie (zaakceptowany 2026-11-01)
+
+- Pliki z serwera: `docker-compose.yaml` różni się od compose 1.4.3 z repo
+  tylko domyślnym tagiem (`v1.4.3` zamiast `stable`); `plane.env`:
+  `APP_RELEASE=v1.4.3`, proxy na 8080, domena `projects.bloppo.pl`;
+  `SECRET_KEY`/`LIVE_SERVER_SECRET_KEY` ustawione na serwerze (w kopii
+  wyczyszczone). Uwaga poza zakresem: hasła Postgres/RabbitMQ i klucze MinIO
+  wyglądają na domyślne (usługi niewystawione na zewnątrz).
+- Projekt compose na serwerze = nazwa katalogu `setup.sh` (`plane-app`);
+  `plane-kass.sh` używa tego samego (bez `-p`) i odmawia startu w katalogu
+  bez kontenerów/wolumenów projektu.
+- Test na symulacji serwera (compose z serwera, projekt `plane-app`, obrazy
+  lokalne otagowane jak w GHCR): oficjalne 10/10 → `plane-kass.sh up` 30/30
+  → `rollback` 10/10 → `up` 30/30 → `down` (10 wolumenów zostaje) → `up`
+  30/30 na tych samych danych; blokady: zły katalog, `down -v`/`--volumes`.
+- `pg_dump`/`pg_restore` z instrukcji sprawdzone (dump z lokalnej bazy,
+  dwukrotne przywrócenie do jednorazowego Postgresa 15.7).
+- Workflow i override: poprawny YAML; override zawiera tylko `image`.
+  Workflow nie był jeszcze uruchomiony (wymaga wypchnięcia tagu).
+
 ## Ustalenia z rekonesansu
 
 **Frontend**
@@ -278,6 +298,12 @@ Podjęte:
 
 - Formularz używa `ModalCore`; potwierdzenie usunięcia `AlertModalCore`.
 - Modele dziedziczą po `BaseModel` z jawnym FK `workspace`.
+- Etap 7 (2026-11-01, decyzje użytkownika zmieniające sekcje 9 i 12
+  instrukcji): wdrożenie przez override na obecną instalację (bez
+  reinstalacji); tagi `1.4.3-kass.<n>` zamiast `1.4.3-ta.<n>`; etykiety OCI;
+  ogólne nazwy budowania/wdrażania (`kass`) zamiast `team-availability`:
+  `.github/workflows/kass-images.yml`, `deploy/kass/`
+  (`docker-compose.kass.yaml`, `plane-kass.sh`, `DEPLOYMENT.md`).
 - `AvailabilityEntry.status` i `.location`: `on_delete=RESTRICT` zamiast
   `PROTECT` z instrukcji (zatwierdzone 2026-11-01). `PROTECT` przerywał
   `hard_delete` przy twardym usuwaniu workspace'u z wpisami.
@@ -305,9 +331,7 @@ Brak.
 
 ## Następne kroki
 
-1. Czekamy na pliki z serwera i opis sytuacji od użytkownika.
-2. Etap 7: workflow GHCR (`.github/workflows/team-availability-images.yml`),
-   override `deploy/team-availability/docker-compose.team-availability.yaml`,
-   `plane-ta.sh` (`up`, `down`, `restart`, `logs`, `status`, `rollback`),
-   instrukcja wdrożenia krok po kroku. Potrzebna kopia `docker-compose.yaml`
-   z serwera (bez `plane.env`) do porównania z wersją z repo.
+1. Użytkownik: zielony workflow **Kass variant images** dla `1.4.3-kass.1`,
+   paczki GHCR publiczne, wdrożenie wg `deploy/kass/DEPLOYMENT.md`
+   (sekcje A4, B, D).
+2. Faza 2 (poza MVP): drag-and-drop na `@atlaskit/pragmatic-drag-and-drop`.
