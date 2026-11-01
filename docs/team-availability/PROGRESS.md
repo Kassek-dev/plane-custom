@@ -3,13 +3,22 @@
 > Plik roboczy aktualizowany po każdym etapie. Źródłem wymagań jest
 > `INSTRUCTIONS.md` (wersja 2). Ten plik zapisuje stan, decyzje i ustalenia.
 
-**Ostatnia aktualizacja:** 2026-11-01 (sesja 2)
+**Ostatnia aktualizacja:** 2026-11-01 (sesja 2, zamknięta)
 
 ## Bieżący etap
 
-**Etap 7 (wdrożenie) zaakceptowany 2026-11-01.** Gałąź i tag
-`1.4.3-kass.1` wypchnięte; dalsze kroki (workflow, GHCR, wdrożenie
-produkcyjne) wykonuje użytkownik według `deploy/kass/DEPLOYMENT.md`.
+**Wszystkie etapy (1–7) zakończone i zaakceptowane.** Moduł działa na
+produkcji. Prace na tej gałęzi zamknięte 2026-11-01.
+
+- **Wydania:** `1.4.3-kass.1` (moduł Team Availability) i `1.4.3-kass.2`
+  (poprawka tła profilu/okładek w `getFileURL`, `plane-kass.sh update`).
+  Obrazy `ghcr.io/kassek-dev/plane-{frontend,backend}:<tag>`, publiczne.
+- **Gałęzie:** `main` = główna gałąź wariantu (utworzona z
+  `team-availability`, ten sam stan; bez merge'a z `preview`). Nowe funkcje:
+  gałąź z `main`, potem merge do `main` i tag `1.4.3-kass.<n>`. `preview` to
+  kopia rozwojowego upstreamu Plane (167 commitów ponad `v1.4.3`); nie
+  łączymy z nią wariantu.
+- **Instrukcja wdrożenia i aktualizacji:** `deploy/kass/DEPLOYMENT.md`.
 
 | Etap                  | Status                   |
 | --------------------- | ------------------------ |
@@ -356,7 +365,12 @@ Brak.
 
 ## Następne kroki
 
-1. Użytkownik: zielony workflow **Kass variant images** dla `1.4.3-kass.1`,
-   paczki GHCR publiczne, wdrożenie wg `deploy/kass/DEPLOYMENT.md`
-   (sekcje A4, B, D).
-2. Faza 2 (poza MVP): drag-and-drop na `@atlaskit/pragmatic-drag-and-drop`.
+1. Użytkownik: aktualizacja serwera do `1.4.3-kass.2` (jednorazowo nowy
+   `plane-kass.sh`, potem `./plane-kass.sh update`, `DEPLOYMENT.md` C2) i
+   sprawdzenie zmiany tła profilu.
+2. Opcjonalnie: `main` jako domyślna gałąź forka (GitHub → Settings →
+   Default branch).
+3. Poza zakresem, do rozważenia: zmiana domyślnych haseł Postgres/RabbitMQ
+   i kluczy MinIO na serwerze.
+4. Faza 2 (poza MVP): drag-and-drop na `@atlaskit/pragmatic-drag-and-drop`
+   (nowa gałąź z `main`).
