@@ -87,3 +87,14 @@ Prefiks `/api/workspaces/<slug>/availability/`:
 - Błędy walidacji: 400 z błędami pól (DRF). 403 z `allow_permission`
   i reguły „własny wpis” ma postać `{"error": "..."}`.
 - `DELETE` na słownikach: 405 (tylko archiwizacja).
+
+## Build i wdrożenie: uwagi z weryfikacji (Etap 6)
+
+- Obrazy budować z czystego drzewa (CI: checkout; lokalnie: `git archive`).
+  Root `.dockerignore` wyklucza tylko `./.env`, nie `apps/*/.env`.
+- Oficjalne obrazy `v1.4.3` działają na bazie z zastosowaną migracją
+  `availability.0001_initial` (sprawdzone rollbackiem): migrator kończy się
+  kodem 0, tabele modułu zostają nieużywane.
+- Hook lint-staged uruchamia `oxlint --fix`; przy plikach upstream może
+  zmienić kod (np. `.sort()` → `.toSorted()`, niezgodne z lib ES2022).
+  Po commicie: `pnpm check:types`.

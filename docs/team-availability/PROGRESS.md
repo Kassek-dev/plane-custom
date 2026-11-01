@@ -7,7 +7,9 @@
 
 ## Bieżący etap
 
-**Etap 6 (weryfikacja) w toku.** Etap 5 zaakceptowany 2026-11-01.
+**Etap 7 (wdrożenie) czeka na dane z serwera.** Etap 6 zaakceptowany
+2026-11-01. Użytkownik dostarczy pliki z serwera (m.in. `docker-compose.yaml`,
+bez `plane.env`) i opisze sytuację; do tego czasu nie zaczynamy Etapu 7.
 
 | Etap                  | Status                   |
 | --------------------- | ------------------------ |
@@ -16,7 +18,7 @@
 | 3. Backend            | ukończony, zaakceptowany |
 | 4. Logika frontendu   | ukończony, zaakceptowany |
 | 5. Widoki             | ukończony, zaakceptowany |
-| 6. Weryfikacja        | w toku                   |
+| 6. Weryfikacja        | ukończony, zaakceptowany |
 | 7. Wdrożenie          | nie rozpoczęty           |
 
 ## Co zrobione
@@ -161,6 +163,51 @@ dependencies changed`), a przeglądarka z nieaktualnym `?v=` dostaje
   karty), ale użytkownik zdecydował: **nie wdrażamy**; zostaje zasada
   „bez realtime” z sekcji 7.10.
 
+### Etap 6: weryfikacja (zaakceptowany 2026-11-01)
+
+- `pnpm check:types`: 28/28 zadań OK. `pnpm check:lint`: 16/16, 0 błędów.
+- Hook lint-staged (`oxlint --fix`) przy commicie Etapu 5 sam przepisał
+  `.sort()` → `.toSorted()` w `project-navigation.tsx` (łamie `tsc`, lib
+  ES2022); przywrócone w `1e58f43cd0` z komentarzem `oxlint-disable`.
+  Wniosek: po każdym commicie z plikami upstream sprawdzać `tsc`.
+- Pytest na HEAD: 678 passed, 5 failed (te same 429 co w punkcie
+  odniesienia). `ruff` czysto.
+- Obrazy `linux/amd64` zbudowane z czystego `git archive HEAD` (root
+  `.dockerignore` nie wyklucza `apps/*/.env`, więc build z katalogu
+  roboczego nie odpowiadałby CI): `plane-backend:1.4.3-ta.local` (504 MB),
+  `plane-frontend:1.4.3-ta.local` (150 MB). W obrazie backendu `check` OK,
+  `makemigrations --check` bez zmian.
+- Bundle (33 MB): brak wartości sekretów z `.env`, brak wzorców kluczy, brak
+  `localhost:8000`; jedyne trafienie (`"plane"`) to tekst i18n.
+- Smoke test na oficjalnym compose 1.4.3 (projekt `plane-ta-smoke`, port
+  8080, usunięty po teście): oficjalne `v1.4.3` + dane bazowe 10/10 →
+  override (diff `docker compose config`: tylko 5 linii `image`) → migrator
+  `availability.0001_initial OK`, 30/30 (core + API modułu z sesjami Admin,
+  Member, Guest, soft delete w bazie, worker bez błędów, `hard_delete` OK) →
+  rollback na oficjalne obrazy: migrator 0, 10/10, tabele modułu zostają,
+  API modułu 404.
+
+**Kryteria akceptacji (sekcja 10)**
+
+| #     | Wynik       | Dowód                                                                                                                               |
+| ----- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 1–6   | ✅          | `lib/acceptance.test.ts` w 4 strefach; 5–6 także `test_dst_entries_keep_length`                                                     |
+| 7     | ✅          | klient: `validation.ts` + test; API: test 400 + constraint DB; smoke                                                                |
+| 8     | ✅          | `test_creates_entry_and_no_work_items`; moduł nie używa serwisów work itemów                                                        |
+| 9     | ✅          | `test_patch_updates_same_record`; smoke                                                                                             |
+| 10    | ✅          | `test_delete_is_soft`, smoke (`deleted_at` w bazie); modal potwierdzenia: test UI w Etapie 5                                        |
+| 11–14 | ✅          | `test_range_overlap`, `test_pagination_returns_everything`, `test_concurrent_default_seeding_creates_one_set`, `TestArchivedValues` |
+| 15–16 | ✅          | `test_permissions.py`; smoke                                                                                                        |
+| 17    | ✅ API / UI | API: testy + smoke; nawigacja: `access` bez Guesta (test UI w Etapie 5)                                                             |
+| 18    | ✅          | `TestProjectFilter`; smoke                                                                                                          |
+| 19–24 | ✅ (UI)     | test w przeglądarce w Etapie 5 i akceptacja użytkownika                                                                             |
+| 25    | ✅          | `layout.test.ts`, `acceptance.test.ts` (25); ikona przy nazwisku                                                                    |
+| 26    | ✅          | `check:types`, `check:lint`, `ruff`                                                                                                 |
+| 27    | ✅          | oba obrazy `linux/amd64`                                                                                                            |
+| 28    | ✅          | skan bundla                                                                                                                         |
+| 29    | ✅          | pytest bez regresji; smoke core 10/10 przed, po i po rollbacku                                                                      |
+| 30    | ✅          | grep `raw(`/`extra(`/`RawSQL`/`cursor` w module i w obrazie: brak                                                                   |
+
 ## Ustalenia z rekonesansu
 
 **Frontend**
@@ -258,6 +305,9 @@ Brak.
 
 ## Następne kroki
 
-1. Etap 6: `pnpm check:types`/`check:lint` (cały monorepo), build obrazów
-   `plane-frontend`/`plane-backend` dla `linux/amd64`, kontrola bundla pod
-   kątem sekretów, smoke test, przegląd kryteriów 1–30, `INTEGRATION.md`.
+1. Czekamy na pliki z serwera i opis sytuacji od użytkownika.
+2. Etap 7: workflow GHCR (`.github/workflows/team-availability-images.yml`),
+   override `deploy/team-availability/docker-compose.team-availability.yaml`,
+   `plane-ta.sh` (`up`, `down`, `restart`, `logs`, `status`, `rollback`),
+   instrukcja wdrożenia krok po kroku. Potrzebna kopia `docker-compose.yaml`
+   z serwera (bez `plane.env`) do porównania z wersją z repo.
