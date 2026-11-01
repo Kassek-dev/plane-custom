@@ -16,6 +16,12 @@ export const getFileURL = (path: string): string | undefined => {
   if (!path) return undefined;
   const isValidURL = path.startsWith("http");
   if (isValidURL) return path;
+  // KASS: same-origin builds have an empty VITE_API_BASE_URL, so the result used to be a
+  // relative path, rejected by URL fields such as `cover_image` ("Enter a valid URL.").
+  // Fall back to the origin the app is served from; nothing is hardcoded.
+  if (!API_BASE_URL && typeof window !== "undefined" && window.location?.origin) {
+    return `${window.location.origin}${path.startsWith("/") ? "" : "/"}${path}`;
+  }
   return `${API_BASE_URL}${path}`;
 };
 
@@ -44,6 +50,7 @@ export const getBase64Image = async (url: string): Promise<string> => {
 
   // Try to create a URL object to validate the URL
   try {
+    // oxlint-disable-next-line no-new -- KASS: pre-existing upstream code, silenced for the lint-staged hook
     new URL(url);
   } catch {
     throw new Error("Invalid URL format");
@@ -67,6 +74,7 @@ export const getBase64Image = async (url: string): Promise<string> => {
       }
     };
 
+    // oxlint-disable-next-line unicorn/prefer-add-event-listener -- KASS: pre-existing upstream code, silenced for the lint-staged hook
     reader.onerror = () => {
       reject(new Error("Failed to read the image file."));
     };

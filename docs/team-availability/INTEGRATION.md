@@ -111,3 +111,12 @@ przyszłe moduły forka; nazwy specyficzne dla funkcji zostają w kodzie modułu
 - `deploy/kass/plane-kass.sh`: `up`, `pull`, `down`, `restart`, `logs`,
   `status`, `rollback`.
 - `deploy/kass/DEPLOYMENT.md`: instrukcja wdrożenia i rollbacku.
+
+## Poprawki upstream wariantu (`KASS`, poza modułem)
+
+Błędy Plane 1.4.3 naprawione w wariancie, niezwiązane z Team Availability.
+Oznaczenie w kodzie: komentarz `KASS`.
+
+| Plik                         | Zmiana                                                                                                                                                                                                                                                                                                                                                                                                                                     | Wydanie        |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
+| `packages/utils/src/file.ts` | `getFileURL`: przy pustym `VITE_API_BASE_URL` (buildy same-origin, także oficjalne obrazy) zwracał ścieżkę względną; backend odrzucał `cover_image` (`400 Enter a valid URL.`), więc nie dało się zmienić tła profilu ani okładki projektu. Teraz używa `window.location.origin`; z ustawionym `VITE_API_BASE_URL` i poza przeglądarką działa jak upstream. Plus 2 komentarze `oxlint-disable` przy istniejącym kodzie (hook lint-staged). | `1.4.3-kass.2` |

@@ -228,6 +228,20 @@ dependencies changed`), a przeglądarka z nieaktualnym `?v=` dostaje
 - Workflow i override: poprawny YAML; override zawiera tylko `image`.
   Workflow nie był jeszcze uruchomiony (wymaga wypchnięcia tagu).
 
+### Po wdrożeniu: poprawka tła profilu (`1.4.3-kass.2`)
+
+- Zgłoszenie (2026-11-01): na serwerze zapis profilu ze zmienionym tłem
+  kończył się `PATCH /api/users/me/` → `400 {"cover_image": ["Enter a valid
+URL."]}`; to samo na oficjalnych obrazach.
+- Przyczyna: błąd upstreamu 1.4.3. `getFileURL` dokleja `API_BASE_URL`,
+  który w buildach produkcyjnych jest pusty, więc `cover_image` był ścieżką
+  względną. Potwierdzone na API: ścieżka względna 400, pełny URL 200.
+- Decyzja użytkownika: wariant 1, poprawka w `packages/utils/src/file.ts`
+  (plik poza sekcją 9), bez hardcodowania adresów: fallback na
+  `window.location.origin`. Sprawdzone: build same-origin, jawne
+  `VITE_API_BASE_URL`, brak `window`, pełne URL-e; `check:types` 28/28.
+- Override: tag `1.4.3-kass.2`.
+
 ## Ustalenia z rekonesansu
 
 **Frontend**

@@ -10,12 +10,12 @@
 # New release: change the tag below (all five lines) to the new 1.4.3-kass.<n>.
 services:
   web:
-    image: ghcr.io/kassek-dev/plane-frontend:1.4.3-kass.1
+    image: ghcr.io/kassek-dev/plane-frontend:1.4.3-kass.2
   api:
-    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.1
+    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.2
   worker:
-    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.1
+    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.2
   beat-worker:
-    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.1
+    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.2
   migrator:
-    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.1
+    image: ghcr.io/kassek-dev/plane-backend:1.4.3-kass.2
